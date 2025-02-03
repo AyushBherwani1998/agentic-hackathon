@@ -3,8 +3,8 @@ import viteLogo from "/vite.svg";
 import "./App.css";
 import { usePrivy, useWallets } from "@privy-io/react-auth";
 import {
+  createSmartSession,
   delegateToSafe,
-  installSmartSessionModule,
 } from "./services/rhinestoneHandler";
 
 function App() {
@@ -32,8 +32,9 @@ function App() {
 
             const delegateReceipt = await delegateToSafe(wallet);
             console.log(delegateReceipt);
-            const installModuleReceipt = await installSmartSessionModule(wallet);
-            console.log(installModuleReceipt);
+
+            const sessionReceipt = await createSmartSession(wallet);
+            console.log(sessionReceipt);
           }}
         >
           sign message
