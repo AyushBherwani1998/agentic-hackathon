@@ -3,10 +3,11 @@ import reactLogo from "./assets/react.svg";
 import viteLogo from "/vite.svg";
 import "./App.css";
 import { usePrivy, useWallets } from "@privy-io/react-auth";
+import { signMessage, signAuthorization } from "./services/privyHandler";
 
 function App() {
   const [count, setCount] = useState(0);
-  const { login, logout, signMessage } = usePrivy();
+  const { login, logout } = usePrivy();
   const { wallets } = useWallets();
 
   return (
@@ -26,13 +27,7 @@ function App() {
         <button
           onClick={async () => {
             const wallet = wallets[0];
-            const provider = await wallet.getEthereumProvider();
-            const address = wallet.address;
-            const message = "Hello from Privy";
-            const signature = await provider.request({
-              method: "personal_sign",
-              params: [message, address],
-            });
+            const signature = await signAuthorization(wallet);
             console.log(signature);
           }}
         >
