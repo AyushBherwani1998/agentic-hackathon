@@ -68,5 +68,6 @@ export const walletClient = async (wallet: ConnectedWallet) => {
   return createWalletClient({
     chain: odysseyTestnet,
     transport: custom(transport),
+    // account: wallet.address as `0x${string}`,
   }).extend(eip7702Actions());
 };

@@ -1,8 +1,9 @@
 import { ConnectedWallet } from "@privy-io/react-auth";
 import { signAuthorization, walletClient } from "./privyHandler";
-import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
+import { privateKeyToAccount } from "viem/accounts";
 import {
   getOwnableValidator,
+  getSmartSessionsValidator,
   RHINESTONE_ATTESTER_ADDRESS,
 } from "@rhinestone/module-sdk";
 import { encodeFunctionData, parseAbi } from "viem/utils";
@@ -17,16 +18,31 @@ import {
   zeroAddress,
 } from "viem";
 import { odysseyTestnet } from "viem/chains";
+import { createPimlicoClient } from "permissionless/clients/pimlico";
+import { createSmartAccountClient } from "permissionless/clients";
+import { toSafeSmartAccount } from "permissionless/accounts";
+import { erc7579Actions } from "permissionless/actions/erc7579";
+import { entryPoint07Address } from "viem/account-abstraction";
+
+export const publicClient = createPublicClient({
+  chain: odysseyTestnet,
+  transport: http(),
+});
+
+const pimlicoClient = createPimlicoClient({
+  transport: http(
+    `https://api.pimlico.io/v2/${odysseyTestnet.id}/rpc?apikey=${
+      import.meta.env.VITE_PIMLICO_API_KEY
+    }`
+  ),
+});
 
 export const delegateToSafe = async (wallet: ConnectedWallet) => {
   const client = await walletClient(wallet);
-  const publicClient = createPublicClient({
-    chain: odysseyTestnet,
-    transport: http(),
-  });
-
   // Required to delegate to the safe, since safe owner needs to be different than EOA
-  const owner = privateKeyToAccount(generatePrivateKey());
+  const owner = privateKeyToAccount(
+    import.meta.env.VITE_SAFE_OWNER_PRIVATE_KEY
+  );
 
   const ownableValidator = getOwnableValidator({
     owners: [owner.address],
@@ -86,10 +102,9 @@ export const delegateToSafe = async (wallet: ConnectedWallet) => {
     authorizationList: [authorization],
     chainId: odysseyTestnet.id,
     nonce: nonce,
-    to: "0x29fcB43b46531BcA003ddC8FCB67FFE91900C762",
+    to: wallet.address as `0x${string}`,
     data: transactionData,
-    value: BigInt(0),
-    gas: 900000n,
+    gas: 1000000n,
     maxFeePerGas: estimateFeesPerGas.maxFeePerGas,
     maxPriorityFeePerGas: estimateFeesPerGas.maxPriorityFeePerGas,
   };
@@ -113,6 +128,53 @@ export const delegateToSafe = async (wallet: ConnectedWallet) => {
   const receipt = await publicClient.waitForTransactionReceipt({
     hash,
   });
+
+  return receipt;
+};
+
+export const installSmartSessionModule = async (wallet: ConnectedWallet) => {
+  const owner = privateKeyToAccount(
+    import.meta.env.VITE_SAFE_OWNER_PRIVATE_KEY
+  );
+
+  const safeAccount = await toSafeSmartAccount({
+    address: wallet.address as `0x${string}`,
+    owners: [owner],
+    client: publicClient,
+    version: "1.4.1",
+    entryPoint: {
+      address: entryPoint07Address,
+      version: "0.7",
+    },
+    safe4337ModuleAddress: "0x7579EE8307284F293B1927136486880611F20002",
+    erc7579LaunchpadAddress: "0x7579011aB74c46090561ea277Ba79D510c6C00ff",
+  });
+
+  const smartAccountClient = createSmartAccountClient({
+    account: safeAccount,
+    chain: odysseyTestnet,
+    bundlerTransport: http(pimlicoClient.transport.url),
+    paymaster: pimlicoClient,
+    userOperation: {
+      estimateFeesPerGas: async () => {
+        return (await pimlicoClient.getUserOperationGasPrice()).fast;
+      },
+    },
+  }).extend(erc7579Actions());
+
+  const smartSessions = getSmartSessionsValidator({});
+
+  const opHash = await smartAccountClient.installModule(smartSessions);
+
+  const receipt = await pimlicoClient.waitForUserOperationReceipt({
+    hash: opHash,
+  });
+
+  const isModuleInstalled = await smartAccountClient.isModuleInstalled(
+    smartSessions
+  );
+
+  console.log(isModuleInstalled);
 
   return receipt;
 };

@@ -1,13 +1,13 @@
-import { useState } from "react";
 import reactLogo from "./assets/react.svg";
 import viteLogo from "/vite.svg";
 import "./App.css";
 import { usePrivy, useWallets } from "@privy-io/react-auth";
-import { signMessage, signAuthorization } from "./services/privyHandler";
-import { delegateToSafe } from "./services/rhinestoneHandler";
+import {
+  delegateToSafe,
+  installSmartSessionModule,
+} from "./services/rhinestoneHandler";
 
 function App() {
-  const [count, setCount] = useState(0);
   const { login, logout } = usePrivy();
   const { wallets } = useWallets();
 
@@ -28,8 +28,12 @@ function App() {
         <button
           onClick={async () => {
             const wallet = wallets[0];
-            const signature = await delegateToSafe(wallet);
-            console.log(signature);
+            console.log(wallet);
+
+            const delegateReceipt = await delegateToSafe(wallet);
+            console.log(delegateReceipt);
+            const installModuleReceipt = await installSmartSessionModule(wallet);
+            console.log(installModuleReceipt);
           }}
         >
           sign message
