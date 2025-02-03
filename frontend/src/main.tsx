@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import "./index.css";
 import App from "./App.tsx";
 import { PrivyProvider } from "@privy-io/react-auth";
+import { odysseyTestnet } from "viem/chains";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -13,6 +14,8 @@ createRoot(document.getElementById("root")!).render(
         embeddedWallets: {
           createOnLogin: "users-without-wallets",
         },
+        defaultChain: odysseyTestnet,
+        supportedChains: [odysseyTestnet],
       }}
     >
       <App />

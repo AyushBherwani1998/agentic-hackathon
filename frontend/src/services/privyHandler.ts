@@ -25,13 +25,16 @@ export const signMessage = async (message: string, wallet: ConnectedWallet) => {
   }
 };
 
-export const signAuthorization = async (wallet: ConnectedWallet) => {
+export const signAuthorization = async (
+  wallet: ConnectedWallet,
+  contractAddress: `0x${string}`
+) => {
   const client: WalletClient = await walletClient(wallet);
 
   console.log(wallet.address);
 
   const authorization = await prepareAuthorization(client, {
-    contractAddress: "0x654F42b74885EE6803F403f077bc0409f1066c58",
+    contractAddress,
     account: wallet.address as `0x${string}`,
   });
 
@@ -56,7 +59,7 @@ export const signAuthorization = async (wallet: ConnectedWallet) => {
 
   console.log(isVerified);
 
-  return authorization;
+  return signedAuthorization;
 };
 
 export const walletClient = async (wallet: ConnectedWallet) => {

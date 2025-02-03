@@ -4,6 +4,7 @@ import viteLogo from "/vite.svg";
 import "./App.css";
 import { usePrivy, useWallets } from "@privy-io/react-auth";
 import { signMessage, signAuthorization } from "./services/privyHandler";
+import { delegateToSafe } from "./services/rhinestoneHandler";
 
 function App() {
   const [count, setCount] = useState(0);
@@ -27,7 +28,7 @@ function App() {
         <button
           onClick={async () => {
             const wallet = wallets[0];
-            const signature = await signAuthorization(wallet);
+            const signature = await delegateToSafe(wallet);
             console.log(signature);
           }}
         >
