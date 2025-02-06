@@ -34,6 +34,7 @@ import {
 } from "viem/account-abstraction";
 import { getAccountNonce } from "permissionless/actions";
 import { createSession } from "./utils/session";
+import { useSignerEth } from "../providers/LedgerSignerProvider";
 
 export const publicClient = createPublicClient({
   chain: odysseyTestnet,
@@ -167,10 +168,13 @@ export const delegateToSafe = async (wallet: ConnectedWallet) => {
     maxPriorityFeePerGas: estimateFeesPerGas.maxPriorityFeePerGas,
   };
 
+
   const transactionSignature: Hex = await client.transport.request({
     method: "secp256k1_sign",
     params: [keccak256(serializeTransaction(transactionSerializable))],
   });
+
+
 
   const parsedSignature = parseSignature(transactionSignature);
 
@@ -179,9 +183,17 @@ export const delegateToSafe = async (wallet: ConnectedWallet) => {
     parsedSignature
   );
 
+  
+
+
   const hash = await publicClient.sendRawTransaction({
     serializedTransaction: signedSerializedTransaction,
   });
+
+  const ledgerSigner = useSignerEth();
+
+
+  ledgerSigner!.signMessage("m/44'/60'/0'/0/0", hash);
 
   const receipt = await publicClient.waitForTransactionReceipt({
     hash,
