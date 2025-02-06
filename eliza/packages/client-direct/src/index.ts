@@ -323,6 +323,9 @@ export class DirectClient {
                     async (newMessages) => {
                         message = newMessages;
                         return [memory];
+                    },
+                    {
+                        param: req.body.param,
                     }
                 );
 
@@ -459,13 +462,13 @@ export class DirectClient {
                                       nearby.map((item) => z.literal(item)) as [
                                           z.ZodLiteral<string>,
                                           z.ZodLiteral<string>,
-                                          ...z.ZodLiteral<string>[],
+                                          ...z.ZodLiteral<string>[]
                                       ]
                                   )
                                   .nullable()
                             : nearby.length === 1
-                              ? z.literal(nearby[0]).nullable()
-                              : z.null(); // Fallback for empty array
+                            ? z.literal(nearby[0]).nullable()
+                            : z.null(); // Fallback for empty array
 
                     const emoteSchema =
                         availableEmotes.length > 1
@@ -476,13 +479,13 @@ export class DirectClient {
                                       ) as [
                                           z.ZodLiteral<string>,
                                           z.ZodLiteral<string>,
-                                          ...z.ZodLiteral<string>[],
+                                          ...z.ZodLiteral<string>[]
                                       ]
                                   )
                                   .nullable()
                             : availableEmotes.length === 1
-                              ? z.literal(availableEmotes[0]).nullable()
-                              : z.null(); // Fallback for empty array
+                            ? z.literal(availableEmotes[0]).nullable()
+                            : z.null(); // Fallback for empty array
 
                     return z.object({
                         lookAt: lookAtSchema,
@@ -679,7 +682,9 @@ export class DirectClient {
 
                     if (!fileResponse.ok) {
                         throw new Error(
-                            `API responded with status ${fileResponse.status}: ${await fileResponse.text()}`
+                            `API responded with status ${
+                                fileResponse.status
+                            }: ${await fileResponse.text()}`
                         );
                     }
 

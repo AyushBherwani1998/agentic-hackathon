@@ -109,6 +109,7 @@ export const transferAction: Action = {
         _options: any,
         callback?: HandlerCallback
     ) => {
+        console.log("Options: ", _options);
         if (!state) {
             state = (await runtime.composeState(message)) as State;
         } else {
