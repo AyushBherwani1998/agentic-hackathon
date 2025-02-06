@@ -1,5 +1,3 @@
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
 import "./App.css";
 import { usePrivy, useWallets } from "@privy-io/react-auth";
 import {
@@ -7,45 +5,74 @@ import {
   delegateToSafe,
 } from "./services/rhinestoneHandler";
 
+import PromptInput from "./components/PromptInput"
+import { useState } from "react";
+import { PromptTransfer } from "./components/PromptTransfer";
+import Eliza from "./components/eliza";
+
 function App() {
   const { login, logout } = usePrivy();
   const { wallets } = useWallets();
+  const [inputValue, setInputValue] = useState<string>("");
+  const [showTransfer, setShowTransfer] = useState(false);
+  const [showEliza, setShowEliza] = useState(false);
+
+  const handleInputChange = (value: string) => {
+    setInputValue(value);
+  };
+
+  const handleSubmit = () => {
+    console.log("Submit clicked, current input:", inputValue);
+    if (inputValue === "/transfer") {
+      setShowTransfer(true);
+    }
+  };
+
+  const handleElizaClick = () => {
+    setShowEliza(true);
+  };
 
   return (
     <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => login()}>Login</button>
-        <button onClick={() => logout()}> Logout </button>
-        <button
-          onClick={async () => {
-            const wallet = wallets[0];
-            console.log(wallet);
+      {showTransfer ? (
+        <div>
+        <PromptTransfer />
+        <button 
+            onClick={handleElizaClick}
+            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
+          >
+            Ask Eliza
+          </button>
+          </div>
+      ) : (
+        <div>
+          <PromptInput onInputChange={handleInputChange} />
+          <button 
+            onClick={handleSubmit}
+            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
+          >
+            Submit
+          </button>
+        </div>
+      )}
+      
+      <button onClick={() => login()}>Login</button>
+      <button onClick={() => logout()}> Logout </button>
+      <button
+        onClick={async () => {
+          const wallet = wallets[0];
+          console.log(wallet);
 
-            const delegateReceipt = await delegateToSafe(wallet);
-            console.log(delegateReceipt);
+          const delegateReceipt = await delegateToSafe(wallet);
+          console.log(delegateReceipt);
 
-            const sessionReceipt = await createSmartSession(wallet);
-            console.log(sessionReceipt);
-          }}
-        >
-          sign message
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+          const sessionReceipt = await createSmartSession(wallet);
+          console.log(sessionReceipt);
+        }}
+      >
+        sign message
+      </button>
+      {showEliza && <Eliza />}
     </>
   );
 }
