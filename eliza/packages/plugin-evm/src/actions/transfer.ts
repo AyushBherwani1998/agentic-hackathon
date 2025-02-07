@@ -1,4 +1,4 @@
-import { type ByteArray, formatEther, parseEther, type Hex } from "viem";
+import { ByteArray, formatEther, parseEther, type Hex } from "viem";
 import {
     type Action,
     composeContext,
@@ -9,14 +9,14 @@ import {
     type Memory,
     type State,
 } from "@elizaos/core";
-
-import { initWalletProvider, type WalletProvider } from "../providers/wallet";
+import { initPrivyProvider, type PrivyProvider } from "../providers/privy";
 import type { Transaction, TransferParams } from "../types";
 import { transferTemplate } from "../templates";
+import { odysseyTestnet } from "viem/chains";
 
 // Exported for tests
 export class TransferAction {
-    constructor(private walletProvider: WalletProvider) {}
+    constructor(private privyProvider: PrivyProvider) {}
 
     async transfer(params: TransferParams): Promise<Transaction> {
         console.log(
@@ -27,12 +27,10 @@ export class TransferAction {
             params.data = "0x";
         }
 
-        this.walletProvider.switchChain(params.fromChain);
-
-        const walletClient = this.walletProvider.getWalletClient(
-            params.fromChain
+        const walletClient = await this.privyProvider.getWalletClient(
+            params.walletId
         );
-
+        
         try {
             const hash = await walletClient.sendTransaction({
                 account: walletClient.account,
@@ -54,7 +52,7 @@ export class TransferAction {
             });
 
             return {
-                hash,
+                hash: hash,
                 from: walletClient.account.address,
                 to: params.toAddress,
                 value: parseEther(params.amount),
@@ -69,9 +67,10 @@ export class TransferAction {
 const buildTransferDetails = async (
     state: State,
     runtime: IAgentRuntime,
-    wp: WalletProvider
+    privyProvider: PrivyProvider,
+    options: any
 ): Promise<TransferParams> => {
-    const chains = Object.keys(wp.chains);
+    const chains = Object.keys(privyProvider.chains);
     state.supportedChains = chains.map((item) => `"${item}"`).join("|");
 
     const context = composeContext({
@@ -85,7 +84,9 @@ const buildTransferDetails = async (
         modelClass: ModelClass.SMALL,
     })) as TransferParams;
 
-    const existingChain = wp.chains[transferDetails.fromChain];
+    transferDetails.walletId = options.walletId;
+    console.log("Transfer Details:", transferDetails);
+    const existingChain = privyProvider.chains[transferDetails.fromChain];
 
     if (!existingChain) {
         throw new Error(
@@ -117,14 +118,15 @@ export const transferAction: Action = {
         }
 
         console.log("Transfer action handler called");
-        const walletProvider = await initWalletProvider(runtime);
-        const action = new TransferAction(walletProvider);
+        const privyProvider = await initPrivyProvider(runtime);
+        const action = new TransferAction(privyProvider);
 
         // Compose transfer context
         const paramOptions = await buildTransferDetails(
             state,
             runtime,
-            walletProvider
+            privyProvider,
+            _options
         );
 
         try {

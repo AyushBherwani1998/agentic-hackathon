@@ -69,6 +69,7 @@ export interface TransferParams {
     toAddress: Address;
     amount: string;
     data?: `0x${string}`;
+    walletId?: string;
 }
 
 export interface SwapParams {

@@ -325,7 +325,7 @@ export class DirectClient {
                         return [memory];
                     },
                     {
-                        param: req.body.param,
+                        ...req.body,
                     }
                 );
 

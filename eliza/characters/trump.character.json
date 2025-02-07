@@ -6,6 +6,9 @@
         "secrets": {},
         "voice": {
             "model": "en_US-male-medium"
+        },
+        "chains": {
+            "evm": ["baseSepolia", "odysseyTestnet"]
         }
     },
     "plugins": ["@elizaos/plugin-evm"],
