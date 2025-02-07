@@ -1,6 +1,6 @@
-import React from 'react'
+import React from 'react';
 
-export const PromptTransfer = () => {
+export const PromptCreateToken = () => {
 
     const noOutline = {
         width: "10rem",
@@ -13,9 +13,7 @@ export const PromptTransfer = () => {
   return (
     <>
     <div className='flex flex-row items-center flex-wrap'>
-        <h1 className="mr-2 text-4xl whitespace-nowrap">On</h1>
-        <h1 className="mr-2 text-4xl whitespace-nowrap">Oddessey</h1>
-        <h1 className="mr-2 text-4xl whitespace-nowrap">testnet</h1>
+        <h1 className="mr-2 text-4xl whitespace-nowrap">As a token smith, I want to create a token called</h1>
         <input
             type="text"
             placeholder={"Simpson"}
@@ -35,4 +33,4 @@ export const PromptTransfer = () => {
   )
 }
 
-export default PromptTransfer;
+export default PromptCreateToken;

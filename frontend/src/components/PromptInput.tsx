@@ -19,6 +19,7 @@ const PromptInput: React.FC<CommandInputProps> = ({
 }) => {
   const [inputValue, setInputValue] = useState<string>('');
   const [showDropdown, setShowDropdown] = useState<boolean>(false);
+  const [hoveredIndex, setHoveredIndex] = useState<number>(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -27,9 +28,8 @@ const PromptInput: React.FC<CommandInputProps> = ({
 
   // Sample commands - you can customize these
   const commands: Command[] = [
-    { id: 1, label: '/transfer', description: 'Show help menu' },
-    { id: 2, label: '/create-your-token', description: 'Search for content' },
-    { id: 3, label: '/mint', description: 'Open settings' },
+    { id: 1, label: '/transfer', description: 'Transfer Oddessey native token' },
+    { id: 2, label: '/create-your-token', description: 'Become a token smith' },
   ];
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>): void => {
@@ -71,20 +71,27 @@ const PromptInput: React.FC<CommandInputProps> = ({
         value={inputValue}
         onChange={handleInputChange}
         placeholder={placeholder}
-        className="w-full p-2 text-4xl text-gray-50 placeholder-gray-600"
+        className="w-full p-2 text-4xl text-gray-50 placeholder-white/[20%]"
         style={noOutline}
       />
       
       {showDropdown && (
-        <div className="absolute top-full left-0 w-full mt-1 bg-white shadow-lg rounded-md overflow-hidden">
-          {commands.map((command) => (
+        <div className="absolute top-full left-0 w-full mt-1 overflow-hidden z-2 rounded-lg bg-slate-900/[8%] backdrop-blur-sm">
+          {commands.map((command, index) => (
             <button
               key={command.id}
               onClick={() => handleCommandClick(command)}
-              className="w-full p-2 text-left hover:bg-gray-100 flex items-center gap-2"
+              onMouseEnter={() => setHoveredIndex(index)}
+              className={`w-full px-8 py-4 text-left 
+              text-slate-100/[50%] 
+              ${index === hoveredIndex ? 'bg-yellow-300/[10%] border-1 border-yellow-300 text-yellow-300' : ''} 
+              flex items-center gap-2
+              rounded-lg`}
             >
-              <span className="font-medium">{command.label}</span>
-              <span className="text-sm text-gray-500">{command.description}</span>
+                <div className='flex flex-col'>
+              <span className="text-xl font-semibold">{command.label}</span>
+              <span className="text-sm text-gray-300">{command.description}</span>
+              </div>
             </button>
           ))}
         </div>
