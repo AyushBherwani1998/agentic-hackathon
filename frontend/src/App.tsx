@@ -6,10 +6,19 @@ import {
   createSmartSession,
   delegateToSafe,
 } from "./services/rhinestoneHandler";
+import { webBleIdentifier } from "@ledgerhq/device-transport-kit-web-ble";
+
+import { useDmk } from "./providers/LedgerDmkProvider";
+import { DiscoveredDevice } from "@ledgerhq/device-management-kit";
+import { useDeviceSessionsContext } from "./providers/LedgerSessionProvider";
+import { useSignerEth } from "./providers/LedgerSignerProvider";
 
 function App() {
   const { login, logout } = usePrivy();
   const { wallets } = useWallets();
+  const { dispatch: dispatchDeviceSession } = useDeviceSessionsContext();
+  const dmk = useDmk();
+  const signerEth  = useSignerEth();
 
   return (
     <>
@@ -39,6 +48,19 @@ function App() {
         >
           sign message
         </button>
+        <button onClick={() => {
+          dmk.startDiscovering({transport: webBleIdentifier}).subscribe({
+            next: (device: DiscoveredDevice) => {
+              dmk.connect({device}).then((sessionId) => {
+                const connectedDevice = dmk.getConnectedDevice({ sessionId });
+                console.log('connected device: ', connectedDevice.id);
+              });
+            },
+            error: (error: Error) => {
+              console.error(error);
+            },
+          });
+        }}>Connect hardware wallet</button>
         <p>
           Edit <code>src/App.tsx</code> and save to test HMR
         </p>
