@@ -309,6 +309,7 @@ export class DirectClient {
                     embedding: getEmbeddingZeroVector(),
                     createdAt: Date.now(),
                 };
+                console.log(response);
 
                 await runtime.messageManager.createMemory(responseMessage);
 

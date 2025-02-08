@@ -1,4 +1,9 @@
-import { createPublicClient, createWalletClient, http } from "viem";
+import {
+    createClient,
+    createPublicClient,
+    createWalletClient,
+    http,
+} from "viem";
 import {
     type IAgentRuntime,
     type Provider,
@@ -12,20 +17,29 @@ import type {
     HttpTransport,
     Account,
     WalletClient,
+    Hex,
 } from "viem";
+import { createSmartAccountClient } from "permissionless/clients";
+import {
+    createPimlicoClient,
+    PimlicoClient,
+} from "permissionless/clients/pimlico";
+import { getOwnableValidator } from "@rhinestone/module-sdk";
 import * as viemChains from "viem/chains";
 import { PrivyClient } from "@privy-io/server-auth";
 import { createViemAccount } from "@privy-io/server-auth/viem";
-
+import { toSafeSmartAccount } from "permissionless/accounts";
 import type { SupportedChain } from "../types";
+import { entryPoint07Address, SmartAccount } from "viem/account-abstraction";
+import { erc7579Actions } from "permissionless/actions/erc7579";
 
 export class PrivyProvider {
-    private privyClient: PrivyClient;
+    private privyClient!: PrivyClient;
     private currentChain: SupportedChain = "mainnet";
     chains: Record<string, Chain> = { ...viemChains };
 
-    constructor(client: PrivyClient, chains?: Record<string, Chain>) {
-        this.setPrivyClient(client);
+    constructor(privyClient: PrivyClient, chains?: Record<string, Chain>) {
+        this.setPrivyClient(privyClient);
         this.setChains(chains);
 
         if (chains && Object.keys(chains).length > 0) {
@@ -60,6 +74,19 @@ export class PrivyProvider {
         return this.privyClient;
     }
 
+    getPimlicoClient(): PimlicoClient {
+        const pimlicoApiKey = "pim_WDBELWbZeo9guUAr7HNFaF";
+        const pimlicoRpcUrl = `https://api.pimlico.io/v2/${
+            this.chains[this.currentChain].id
+        }/rpc?apikey=${pimlicoApiKey}`;
+
+        const pimlicoClient = createPimlicoClient({
+            transport: http(pimlicoRpcUrl),
+        });
+
+        return pimlicoClient;
+    }
+
     async getWalletClient(walletId: string): Promise<WalletClient> {
         const account = await createViemAccount({
             walletId: walletId,
@@ -72,6 +99,69 @@ export class PrivyProvider {
             chain: this.chains[this.currentChain],
             transport: http(),
         });
+    }
+
+    async getSmartWalletClinet(
+        walletId: string,
+        owner: Hex
+    ): Promise<{
+        safeAccount: SmartAccount;
+        safeWalletClient;
+    }> {
+        const safeOwner = await createViemAccount({
+            walletId: walletId,
+            address: await this.getAddress(walletId),
+            privy: this.privyClient,
+        });
+
+        const publicClient = createClient({
+            chain: this.chains[this.currentChain],
+            transport: http(),
+        });
+
+        const ownableValidator = getOwnableValidator({
+            owners: [owner],
+            threshold: 1,
+        });
+
+        const safeAccount = await toSafeSmartAccount({
+            address: owner,
+            owners: [safeOwner],
+            client: publicClient,
+            version: "1.4.1",
+            entryPoint: {
+                address: entryPoint07Address,
+                version: "0.7",
+            },
+            safe4337ModuleAddress: "0x7579EE8307284F293B1927136486880611F20002",
+            erc7579LaunchpadAddress:
+                "0x7579011aB74c46090561ea277Ba79D510c6C00ff",
+            validators: [
+                {
+                    address: ownableValidator.address,
+                    context: ownableValidator.initData,
+                },
+            ],
+        });
+
+        const pimlicoClient = this.getPimlicoClient();
+
+        const safeWalletClient = createSmartAccountClient({
+            account: safeAccount,
+            chain: this.chains[this.currentChain],
+            bundlerTransport: http(),
+            paymaster: pimlicoClient,
+            userOperation: {
+                estimateFeesPerGas: async () => {
+                    return { maxFeePerGas: 0n, maxPriorityFeePerGas: 0n };
+                },
+            },
+        }).extend(erc7579Actions());
+
+        return {
+            safeAccount,
+            safeWalletClient,
+        };
     }
 
     getChainConfigs(chainName: SupportedChain): Chain {
@@ -140,7 +230,7 @@ const genChainsFromRuntime = (
     runtime: IAgentRuntime
 ): Record<string, Chain> => {
     const chainNames =
-        (runtime.character.settings.chains?.evm as SupportedChain[]) || [];
+        (runtime.character?.settings?.chains?.evm as SupportedChain[]) || [];
     const chains: Record<string, Chain> = {};
     console.log("ChainNames", chainNames);
     for (const chainName of chainNames) {

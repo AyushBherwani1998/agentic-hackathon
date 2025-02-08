@@ -1,4 +1,10 @@
-import { ByteArray, formatEther, parseEther, type Hex } from "viem";
+import {
+    createPublicClient,
+    formatEther,
+    http,
+    parseEther,
+    type Hex,
+} from "viem";
 import {
     type Action,
     composeContext,
@@ -12,13 +18,31 @@ import {
 import { initPrivyProvider, type PrivyProvider } from "../providers/privy";
 import type { Transaction, TransferParams } from "../types";
 import { transferTemplate } from "../templates";
-import { odysseyTestnet } from "viem/chains";
+import {
+    encodeSmartSessionSignature,
+    getEnableSessionDetails,
+    getOwnableValidatorMockSignature,
+    Session,
+} from "@rhinestone/module-sdk";
+import {
+    encodeValidatorNonce,
+    getAccount,
+    getSmartSessionsValidator,
+} from "@rhinestone/module-sdk";
+import {
+    entryPoint07Address,
+    getUserOperationHash,
+} from "viem/account-abstraction";
+import { getAccountNonce } from "permissionless/actions";
 
 // Exported for tests
 export class TransferAction {
     constructor(private privyProvider: PrivyProvider) {}
 
-    async transfer(params: TransferParams): Promise<Transaction> {
+    async transfer(
+        params: TransferParams,
+        runtime: IAgentRuntime
+    ): Promise<Transaction> {
         console.log(
             `Transferring: ${params.amount} tokens to (${params.toAddress} on ${params.fromChain})`
         );
@@ -27,38 +51,117 @@ export class TransferAction {
             params.data = "0x";
         }
 
-        const walletClient = await this.privyProvider.getWalletClient(
-            params.walletId
+        const sessionOwnerId = await runtime.getSetting(
+            "PRIVY_SESSION_OWNER_ID"
         );
-        
+
+        if (!sessionOwnerId) {
+            console.log("Session Onwer id is missing");
+            throw new Error("Session Onwer id is missing");
+        }
+
+        const safeOwnerId = runtime.getSetting("PRIVY_SAFE_OWNER_ID");
+
+        if (!safeOwnerId) {
+            console.log("Safe Onwer id is missing");
+            throw new Error("Safe Onwer id is missing");
+        }
+
         try {
-            const hash = await walletClient.sendTransaction({
-                account: walletClient.account,
-                to: params.toAddress,
-                value: parseEther(params.amount),
-                data: params.data as Hex,
-                kzg: {
-                    blobToKzgCommitment: (_: ByteArray): ByteArray => {
-                        throw new Error("Function not implemented.");
-                    },
-                    computeBlobKzgProof: (
-                        _blob: ByteArray,
-                        _commitment: ByteArray
-                    ): ByteArray => {
-                        throw new Error("Function not implemented.");
-                    },
-                },
-                chain: undefined,
+            const sessionOwner = await this.privyProvider.getWalletClient(
+                sessionOwnerId
+            );
+
+            const { safeAccount, safeWalletClient } =
+                await this.privyProvider.getSmartWalletClinet(
+                    safeOwnerId,
+                    params.sender!
+                );
+
+            const session = params.session!;
+
+            const smartSessions = getSmartSessionsValidator({});
+
+            const account = getAccount({
+                address: safeAccount.address,
+                type: "safe",
             });
 
+            const publicClient = createPublicClient({
+                chain: this.privyProvider.getCurrentChain(),
+                transport: http(),
+            });
+
+            const nonce = await getAccountNonce(publicClient as any, {
+                address: account.address,
+                entryPointAddress: entryPoint07Address,
+                key: encodeValidatorNonce({
+                    account,
+                    validator: smartSessions,
+                }),
+            });
+
+            const sessionDetails = await getEnableSessionDetails({
+                sessions: [session],
+                account,
+                clients: [publicClient as any],
+            });
+
+            sessionDetails.enableSessionData.enableSession.permissionEnableSig =
+                params.sessionSignature!;
+
+            sessionDetails.signature = getOwnableValidatorMockSignature({
+                threshold: 1,
+            });
+
+            const userOperation = await safeWalletClient.prepareUserOperation({
+                account: safeAccount,
+                calls: [
+                    {
+                        to: session.actions[0].actionTarget,
+                        value: parseEther(params.amount),
+                        data: session.actions[0].actionTargetSelector,
+                    },
+                ],
+                nonce,
+                signature: encodeSmartSessionSignature(sessionDetails),
+            });
+
+            const userOpHashToSign = getUserOperationHash({
+                chainId: this.privyProvider.getCurrentChain().id,
+                entryPointAddress: entryPoint07Address,
+                entryPointVersion: "0.7",
+                userOperation,
+            });
+
+            sessionDetails.signature = await sessionOwner.signMessage({
+                account: sessionOwner.account!,
+                message: { raw: userOpHashToSign },
+            });
+
+            userOperation.signature =
+                encodeSmartSessionSignature(sessionDetails);
+
+            const userOpHash = await safeWalletClient.sendUserOperation(
+                userOperation
+            );
+
+            const pimlicoClient = this.privyProvider.getPimlicoClient();
+
+            const receipt = await pimlicoClient.waitForUserOperationReceipt({
+                hash: userOpHash,
+            });
+
+            console.log(receipt);
+
             return {
-                hash: hash,
-                from: walletClient.account.address,
+                hash: receipt.receipt.transactionHash,
+                from: params.sender!,
                 to: params.toAddress,
                 value: parseEther(params.amount),
                 data: params.data as Hex,
             };
-        } catch (error) {
+        } catch (error: any) {
             throw new Error(`Transfer failed: ${error.message}`);
         }
     }
@@ -84,7 +187,9 @@ const buildTransferDetails = async (
         modelClass: ModelClass.SMALL,
     })) as TransferParams;
 
-    transferDetails.walletId = options.walletId;
+    transferDetails.sender = options.sender;
+    transferDetails.session = JSON.parse(options.session) as Session;
+
     console.log("Transfer Details:", transferDetails);
     const existingChain = privyProvider.chains[transferDetails.fromChain];
 
@@ -130,7 +235,7 @@ export const transferAction: Action = {
         );
 
         try {
-            const transferResp = await action.transfer(paramOptions);
+            const transferResp = await action.transfer(paramOptions, runtime);
             if (callback) {
                 callback({
                     text: `Successfully transferred ${paramOptions.amount} tokens to ${paramOptions.toAddress}\nTransaction Hash: ${transferResp.hash}`,
@@ -144,7 +249,7 @@ export const transferAction: Action = {
                 });
             }
             return true;
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error during token transfer:", error);
             if (callback) {
                 callback({

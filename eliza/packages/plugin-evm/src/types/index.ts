@@ -1,4 +1,5 @@
 import type { Route, Token } from "@lifi/types";
+import { Session } from "@rhinestone/module-sdk";
 import type {
     Account,
     Address,
@@ -69,7 +70,9 @@ export interface TransferParams {
     toAddress: Address;
     amount: string;
     data?: `0x${string}`;
-    walletId?: string;
+    session?: Session;
+    sessionSignature?: `0x${string}`;
+    sender?: Address;
 }
 
 export interface SwapParams {
