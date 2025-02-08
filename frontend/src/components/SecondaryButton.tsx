@@ -2,7 +2,7 @@ import React from 'react';
 
 interface SecondaryButtonProps {
     icon?: string; // Update icon prop to accept string (image source)
-    text: string; // Text for the button
+    text?: string; // Text for the button
     className?: string; // Additional Tailwind classes
     onClick?: () => void; // Click handler
 }

@@ -1,9 +1,19 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
-import App from "./App.tsx";
+import App from "./pages/App.tsx";
 import { PrivyProvider } from "@privy-io/react-auth";
 import { odysseyTestnet } from "viem/chains";
+import {createBrowserRouter,RouterProvider} from 'react-router-dom';
+import Landing from "./pages/Landing.tsx";
+
+const router=createBrowserRouter([{
+  path:"/",
+  element: <App/>
+},{
+  path:"/landing",
+  element:<Landing/>
+}]);
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -18,7 +28,7 @@ createRoot(document.getElementById("root")!).render(
         supportedChains: [odysseyTestnet],
       }}
     >
-      <App />
+      <RouterProvider router={router}/>
     </PrivyProvider>
   </StrictMode>
 );
