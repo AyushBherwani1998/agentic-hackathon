@@ -4,20 +4,23 @@ import "./index.css";
 import App from "./pages/App.tsx";
 import { PrivyProvider } from "@privy-io/react-auth";
 import { odysseyTestnet } from "viem/chains";
-import {createBrowserRouter,RouterProvider} from 'react-router-dom';
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Landing from "./pages/Landing.tsx";
 import Loading from "./pages/AfterQuery.tsx";
 
-const router=createBrowserRouter([{
-  path:"/",
-  element: <App/>
-},{
-  path:"/landing",
-  element:<Landing/>
-},{
-  path:"/loading",
-  element:<Loading/>
-}
+export const router = createBrowserRouter([
+  {
+    path: "/app",
+    element: <App />,
+  },
+  {
+    path: "/landing",
+    element: <Landing />,
+  },
+  {
+    path: "/loading",
+    element: <Loading />,
+  },
 ]);
 
 createRoot(document.getElementById("root")!).render(
@@ -33,7 +36,7 @@ createRoot(document.getElementById("root")!).render(
         supportedChains: [odysseyTestnet],
       }}
     >
-      <RouterProvider router={router}/>
+      <RouterProvider router={router} />
     </PrivyProvider>
   </StrictMode>
 );

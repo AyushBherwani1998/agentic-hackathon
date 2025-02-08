@@ -149,10 +149,11 @@ export class TransferAction {
             );
 
             const pimlicoClient = this.privyProvider.getPimlicoClient();
-
+            console.log("Calling User Operation Receipt");
             const receipt = await pimlicoClient.waitForUserOperationReceipt({
                 hash: userOpHash,
             });
+            console.log(receipt);
 
             return {
                 hash: receipt.receipt.transactionHash,
@@ -237,7 +238,9 @@ export const transferAction: Action = {
 
         try {
             const transferResp = await action.transfer(paramOptions, runtime);
+            console.log("Transfer Response: ", transferResp);
             if (callback) {
+                console.log("Calling callback");
                 callback({
                     text: `Successfully transferred ${paramOptions.amount} tokens to ${paramOptions.toAddress}\nTransaction Hash: ${transferResp.hash}`,
                     content: {

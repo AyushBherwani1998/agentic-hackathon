@@ -1,14 +1,17 @@
 import { apiClient } from "../api/client";
-import { Agents, Content , MessageRequestBody } from "../types/types";
+import { Agents, Content, MessageRequestBody, MessageResponse } from "../types/types";
 
-async function message(agentId: String, req: MessageRequestBody): Promise<Content[]> {
-    const response = await apiClient.post<Content[]>(`/${agentId}/message`, req);
-    return response;
-} 
-
-async function getAgents() {
-    const response = await apiClient.get<Agents>('/agents');
-    return response;
+async function message(
+  agentId: String,
+  req: MessageRequestBody
+): Promise<MessageResponse> {
+  const response = await apiClient.post<MessageResponse>(`${agentId}/message`, req);
+  return response;
 }
 
-export default { message, getAgents };
+async function getAgents() {
+  const response = await apiClient.get<Agents>("/agents");
+  return response;
+}
+
+export { message, getAgents };

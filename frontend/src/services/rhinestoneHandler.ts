@@ -91,9 +91,7 @@ const smartAccountClient = async (wallet: ConnectedWallet, owner: Account) => {
 export const delegateToSafe = async (wallet: ConnectedWallet) => {
   const client = await walletClient(wallet);
   // Required to delegate to the safe, since safe owner needs to be different than EOA
-  const owner = privateKeyToAccount(
-    import.meta.env.VITE_SAFE_OWNER_PRIVATE_KEY
-  );
+  const owner = import.meta.env.VITE_SAFE_OWNER_ADDRESS;
 
   const ownableValidator = getOwnableValidator({
     owners: [wallet.address as `0x${string}`],
@@ -113,7 +111,7 @@ export const delegateToSafe = async (wallet: ConnectedWallet) => {
     ]),
     functionName: "setup",
     args: [
-      [owner.address],
+      [owner],
       BigInt(1),
       "0x7579011aB74c46090561ea277Ba79D510c6C00ff",
       encodeFunctionData({
@@ -190,51 +188,25 @@ export const delegateToSafe = async (wallet: ConnectedWallet) => {
   return receipt;
 };
 
-export const createSmartSession = async (wallet: ConnectedWallet) => {
-  const sessionOwner = privateKeyToAccount(
-    import.meta.env.VITE_SESSION_OWNER_PRIVATE_KEY
-  );
-
-  const safeOwner = privateKeyToAccount(
-    import.meta.env.VITE_SAFE_OWNER_PRIVATE_KEY
-  );
+export const createSmartSession = async (
+  wallet: ConnectedWallet,
+  actionTarget: `0x${string}`
+) => {
+  const sessionOwner = import.meta.env.VITE_SESSION_OWNER_ADDRESS;
 
   const client = await walletClient(wallet);
 
-  const { safeAccount, safeSmartAccountClient } = await smartAccountClient(
-    wallet,
-    safeOwner
-  );
-
-  const isModuleInstalled = await safeSmartAccountClient.isModuleInstalled(
-    getSmartSessionsValidator({})
-  );
-
-  // Verify if the module is installed
-  console.log(isModuleInstalled);
-
   const session = createSession(
-    sessionOwner.address as `0x${string}`,
+    sessionOwner,
     // TODO: Target address
-    sessionOwner.address as `0x${string}`,
+    actionTarget,
     // TODO: Function to execute
     "0x00000000"
   );
 
-  const smartSessions = getSmartSessionsValidator({});
-
   const account = getAccount({
-    address: safeAccount.address as `0x${string}`,
+    address: wallet.address as `0x${string}`,
     type: "safe",
-  });
-
-  const nonce = await getAccountNonce(publicClient, {
-    address: account.address,
-    entryPointAddress: entryPoint07Address,
-    key: encodeValidatorNonce({
-      account,
-      validator: smartSessions,
-    }),
   });
 
   const sessionDetails = await getEnableSessionDetails({
@@ -244,52 +216,9 @@ export const createSmartSession = async (wallet: ConnectedWallet) => {
   });
 
   const signature = await client.signMessage({
-    account: safeAccount.address as `0x${string}`,
+    account: wallet.address as `0x${string}`,
     message: { raw: sessionDetails.permissionEnableHash },
   });
 
-  sessionDetails.enableSessionData.enableSession.permissionEnableSig =
-    signature as `0x${string}`;
-
-  sessionDetails.signature = getOwnableValidatorMockSignature({
-    threshold: 1,
-  });
-
-  const userOperation = await safeSmartAccountClient.prepareUserOperation({
-    account: safeAccount,
-    calls: [
-      {
-        to: session.actions[0].actionTarget,
-        value: BigInt(100),
-        data: session.actions[0].actionTargetSelector,
-      },
-    ],
-    nonce,
-    signature: encodeSmartSessionSignature(sessionDetails),
-  });
-
-  const userOpHashToSign = getUserOperationHash({
-    chainId: odysseyTestnet.id,
-    entryPointAddress: entryPoint07Address,
-    entryPointVersion: "0.7",
-    userOperation,
-  });
-
-  sessionDetails.signature = await sessionOwner.signMessage({
-    message: { raw: userOpHashToSign },
-  });
-
-  userOperation.signature = encodeSmartSessionSignature(sessionDetails);
-
-  const userOpHash = await safeSmartAccountClient.sendUserOperation(
-    userOperation
-  );
-
-  const receipt = await pimlicoClient.waitForUserOperationReceipt({
-    hash: userOpHash,
-  });
-
-  console.log(receipt);
-
-  return receipt;
+  return { signature, session };
 };
