@@ -6,6 +6,7 @@ import { PrivyProvider } from "@privy-io/react-auth";
 import { odysseyTestnet } from "viem/chains";
 import {createBrowserRouter,RouterProvider} from 'react-router-dom';
 import Landing from "./pages/Landing.tsx";
+import Loading from "./pages/AfterQuery.tsx";
 
 const router=createBrowserRouter([{
   path:"/",
@@ -13,7 +14,11 @@ const router=createBrowserRouter([{
 },{
   path:"/landing",
   element:<Landing/>
-}]);
+},{
+  path:"/loading",
+  element:<Loading/>
+}
+]);
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
