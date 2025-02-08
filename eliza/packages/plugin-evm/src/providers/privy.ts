@@ -149,11 +149,12 @@ export class PrivyProvider {
         const safeWalletClient = createSmartAccountClient({
             account: safeAccount,
             chain: this.chains[this.currentChain],
-            bundlerTransport: http(),
+            bundlerTransport: http(pimlicoClient.transport.url),
             paymaster: pimlicoClient,
             userOperation: {
                 estimateFeesPerGas: async () => {
-                    return { maxFeePerGas: 0n, maxPriorityFeePerGas: 0n };
+                    return (await pimlicoClient.getUserOperationGasPrice())
+                        .fast;
                 },
             },
         }).extend(erc7579Actions());
@@ -287,7 +288,7 @@ export const privyProvider: Provider = {
     ): Promise<string | null> {
         try {
             const privyProvider = await initPrivyProvider(runtime);
-            const chain = privyProvider.getCurrentChain();
+            const chain = privyProvider.chains["odysseyTestnet"];
             const agentName = state?.agentName || "The agent";
             return `${agentName}'s Privy Provider with ${chain.name} chain`;
         } catch (error) {

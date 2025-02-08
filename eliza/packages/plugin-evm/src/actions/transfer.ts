@@ -22,7 +22,6 @@ import {
     encodeSmartSessionSignature,
     getEnableSessionDetails,
     getOwnableValidatorMockSignature,
-    Session,
 } from "@rhinestone/module-sdk";
 import {
     encodeValidatorNonce,
@@ -34,6 +33,7 @@ import {
     getUserOperationHash,
 } from "viem/account-abstraction";
 import { getAccountNonce } from "permissionless/actions";
+import { odysseyTestnet } from "viem/chains";
 
 // Exported for tests
 export class TransferAction {
@@ -87,12 +87,12 @@ export class TransferAction {
                 type: "safe",
             });
 
-            const publicClient = createPublicClient({
-                chain: this.privyProvider.getCurrentChain(),
+            const client = createPublicClient({
+                chain: odysseyTestnet,
                 transport: http(),
             });
 
-            const nonce = await getAccountNonce(publicClient as any, {
+            const nonce = await getAccountNonce(client, {
                 address: account.address,
                 entryPointAddress: entryPoint07Address,
                 key: encodeValidatorNonce({
@@ -101,10 +101,12 @@ export class TransferAction {
                 }),
             });
 
+            session.chainId = BigInt(odysseyTestnet.id);
+
             const sessionDetails = await getEnableSessionDetails({
                 sessions: [session],
                 account,
-                clients: [publicClient as any],
+                clients: [client],
             });
 
             sessionDetails.enableSessionData.enableSession.permissionEnableSig =
@@ -128,7 +130,7 @@ export class TransferAction {
             });
 
             const userOpHashToSign = getUserOperationHash({
-                chainId: this.privyProvider.getCurrentChain().id,
+                chainId: odysseyTestnet.id,
                 entryPointAddress: entryPoint07Address,
                 entryPointVersion: "0.7",
                 userOperation,
@@ -152,8 +154,6 @@ export class TransferAction {
                 hash: userOpHash,
             });
 
-            console.log(receipt);
-
             return {
                 hash: receipt.receipt.transactionHash,
                 from: params.sender!,
@@ -162,6 +162,7 @@ export class TransferAction {
                 data: params.data as Hex,
             };
         } catch (error: any) {
+            console.log("Error:", error);
             throw new Error(`Transfer failed: ${error.message}`);
         }
     }
@@ -186,9 +187,9 @@ const buildTransferDetails = async (
         context,
         modelClass: ModelClass.SMALL,
     })) as TransferParams;
-
     transferDetails.sender = options.sender;
-    transferDetails.session = JSON.parse(options.session) as Session;
+    transferDetails.session = options.session;
+    transferDetails.sessionSignature = options.sessionSignature;
 
     console.log("Transfer Details:", transferDetails);
     const existingChain = privyProvider.chains[transferDetails.fromChain];
@@ -211,7 +212,7 @@ export const transferAction: Action = {
     handler: async (
         runtime: IAgentRuntime,
         message: Memory,
-        state: State,
+        state: State | undefined,
         _options: any,
         callback?: HandlerCallback
     ) => {
