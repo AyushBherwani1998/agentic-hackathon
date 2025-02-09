@@ -27,6 +27,7 @@ class APIClient {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Authorization: import.meta.env.VITE_AUTH_TOKEN,
       },
       body: req
         ? JSON.stringify(req, (_, value) =>
