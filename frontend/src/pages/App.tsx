@@ -43,13 +43,10 @@ function App() {
 
   let buttonOnClick;
 
-  // conditonal functions to render UI
-
   const onExecute = async () => {
     console.log("Execute transfer clicked, current input:", inputValue);
     console.log(TransferData.amount);
     console.log(TransferData.transferAddress);
-    // setShowTransfer(true);
     const response = await executeTransferQuery(
       `Transfer 0.0001 to 0xDC5aFb5DE928bAc740e4bcB1600B93504560d850 on odysseyTestnet`,
       wallets[0],
@@ -59,7 +56,6 @@ function App() {
     setShowLoader(false);
     navigate("/loading");
   };
-  // OnExecute basically apna submits the prompt to Eliza
 
   const handleSubmit = () => {
     console.log("Submit clicked, current input:", inputValue);
@@ -67,11 +63,6 @@ function App() {
       setShowTransfer(true);
       setShowInputPrompt(false);
     }
-  };
-
-  const handleElizaClick = () => {
-    setShowEliza(true);
-    handleValidation();
   };
 
   const renderContent = () => {
