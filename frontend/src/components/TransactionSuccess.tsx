@@ -13,8 +13,9 @@ const TransactionSuccess = () => {
       <img src="success.png" className="h-20 mb-1" />
 
       {/* have this text conditionally render to be added */}
-      <h1 className="text-slate-950 p-2 ">
-        Transferred {amount} ETH to {shortenAddress(address)} for you{" "}
+      <h1 className="text-slate-950 px-2 pt-2 text-center ">
+        Transferred <b>{amount}</b> ETH to <b>{shortenAddress(address)}</b> for
+        you{" "}
       </h1>
 
       <p className="text-blue-500 text-xs">Using Smart Sessions</p>
