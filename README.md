@@ -2,6 +2,9 @@
 
 E-Lisa Simpson showcases a framework to connect your wallets with AI agents without exposing your private keys.
 
+## How to use demo
+To use the demo, you'll require the odysseyTestnet faucet. On doing the first login, in the background, it tries to set the EOA code to SAFE Singleton implementation. Once, you have the funds, just open the `https://agentic-hackathon.vercel.app/` instead of `https://agentic-hackathon.vercel.app/app` to trigger the authorization flow. 
+
 ## Problem statement
 
 1. Connecting with AI agents requires exposing your wallet's Private Keys. Creating significant security risks and trust barriers
