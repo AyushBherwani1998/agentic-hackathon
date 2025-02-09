@@ -1,5 +1,5 @@
 import { ConnectedWallet } from "@privy-io/react-auth";
-import { createWalletClient, custom, parseSignature, WalletClient } from "viem";
+import { createPublicClient, createWalletClient, custom, http, parseSignature, WalletClient } from "viem";
 import { odysseyTestnet } from "viem/chains";
 import {
   eip7702Actions,
@@ -71,3 +71,8 @@ export const walletClient = async (wallet: ConnectedWallet) => {
     // account: wallet.address as `0x${string}`,
   }).extend(eip7702Actions());
 };
+
+export const publicClient = createPublicClient({
+  chain: odysseyTestnet,
+  transport: http(),
+});
