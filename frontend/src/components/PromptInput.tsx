@@ -6,7 +6,7 @@ interface Command {
   description: string;
 }
 
-interface CommandInputProps {
+export interface CommandInputProps {
   placeholder?: string;
   className?: string;
   onInputChange?: (value: string) => void;
@@ -26,7 +26,6 @@ const PromptInput: React.FC<CommandInputProps> = ({
     inputRef.current?.focus();
   }, []);
 
-  // Sample commands - you can customize these
   const commands: Command[] = [
     { id: 1, label: '/transfer', description: 'Transfer Oddessey native token' },
     { id: 2, label: '/create-your-token', description: 'Become a token smith' },

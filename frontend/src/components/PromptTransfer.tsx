@@ -1,7 +1,26 @@
-import React, { useState } from 'react'
-import SecondaryButton from './SecondaryButton';
+import React, { useEffect, useRef, useState, ChangeEvent } from 'react'
+import { CommandInputProps } from './PromptInput';
 
-export const PromptTransfer = () => {
+interface TransferInputProps {
+  amount: string;
+  transferAddress: string;
+  onAmountChange: (e: ChangeEvent<HTMLInputElement>) => void;
+  onAddressChange: (e: ChangeEvent<HTMLInputElement>) => void;
+}
+
+const PromptTransfer:React.FC<TransferInputProps> = ({
+  amount,
+  transferAddress,
+  onAmountChange,
+  onAddressChange
+}) => {
+  const handleAmountChange = (e: ChangeEvent<HTMLInputElement>) => {
+    onAmountChange(e);
+  };
+
+  const handleAddressChange = (e: ChangeEvent<HTMLInputElement>) => {
+    onAddressChange(e);
+  };
 
     const noOutline = {
         width: "10rem",
@@ -27,6 +46,8 @@ export const PromptTransfer = () => {
         <h1 className="mr-2 text-4xl whitespace-nowrap">testnet, I wish to transfer</h1>
         <input
             type="text"
+            value={amount} 
+            onChange={onAmountChange}
             placeholder={"0.0000"}
             className={`inline-block min-w-[10rem] p-2 text-4xl 
                         text-yellow-300 placeholder-yellow-300 mr-2 
@@ -40,7 +61,8 @@ export const PromptTransfer = () => {
         <input
             type="text"
             placeholder={"0x...0000"}
-            value={toAddress}
+            value={transferAddress} 
+            onChange={onAddressChange}
             className={`inline-block w-fit p-2 text-4xl 
                 text-yellow-300 placeholder-yellow-300 mr-2 
                 rounded-lg

@@ -195,6 +195,7 @@ const Landing: React.FC = () => {
       setShowLoader(true);
       await delegateToSafe(wallets[0]);
       setShowLoader(false);
+      //naviate to ./app @ayush
     }
   };
 
