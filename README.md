@@ -7,7 +7,9 @@
 E-Lisa Simpson showcases a framework to connect your wallets with AI agents without exposing your private keys.
 
 ## How to use demo
-To use the demo, you'll require the odysseyTestnet faucet. On doing the first login, in the background, it tries to set the EOA code to SAFE Singleton implementation. Once, you have the funds, just open the `https://agentic-hackathon.vercel.app/` instead of `https://agentic-hackathon.vercel.app/app` to trigger the authorization flow. 
+To use the demo, you'll require the Odyssey Testnet faucet. On doing the first login, in the background, it tries to set the EOA code to SAFE Singleton implementation. Once, you have the funds, just open the `https://agentic-hackathon.vercel.app/` instead of `https://agentic-hackathon.vercel.app/app` to trigger the authorization flow. 
+
+Please note, that we only support [Odyssey Testnet](https://github.com/ithacaxyz/odyssey) due to a lack of support for EIP 7702 transaction type. We also only use the Embedded Wallet since EOA wallets don't have support for signing authorization. [We use Privy `secp256k1_sign` method to sign the authorization Hash](https://github.com/AyushBherwani1998/agentic-hackathon/blob/4c75a868d44188ff16bf56d8af60b34e9d649702/frontend/src/services/privyHandler.ts#L28).
 
 ## Problem statement
 
