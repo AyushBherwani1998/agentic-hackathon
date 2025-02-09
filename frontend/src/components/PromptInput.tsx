@@ -28,7 +28,7 @@ const PromptInput: React.FC<CommandInputProps> = ({
 
   const commands: Command[] = [
     { id: 1, label: '/transfer', description: 'Transfer Oddessey native token' },
-    { id: 2, label: '/create-your-token', description: 'Become a token smith' },
+    // { id: 2, label: '/create-your-token', description: 'Become a token smith' },
   ];
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>): void => {
