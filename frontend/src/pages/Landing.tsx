@@ -205,7 +205,6 @@ const Landing: React.FC = () => {
         <Logo>
           <img src="logo-simpson.svg" alt="E-LISA Simpson" />
         </Logo>
-        {showLoader && <Loader />}
         {!showLoader && (
           <MainContent>
             <Title>

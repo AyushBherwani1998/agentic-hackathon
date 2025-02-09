@@ -96,7 +96,18 @@ function App() {
     <>
       <Header />
 
-      {showLoader && <Loader />}
+      {showLoader && (
+        <div className="w-screen flex justify-center items-center">
+          <Loader
+            texts={[
+              "Connecting your wallet",
+              "Installing safe Modules",
+              "Adding goodness of ERC7702",
+              "Almost there...",
+            ]}
+          />
+        </div>
+      )}
 
       {!showLoader && (
         <>

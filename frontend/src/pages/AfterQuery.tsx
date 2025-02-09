@@ -18,7 +18,16 @@ const Success = () => {
           src="receipt.svg"
           className="w-85 absolute left-1/2 -translate-x-1/2 top-48 z-10"
         />
-        {!showSuccess && <Loader />}
+        {!showSuccess && (
+          <Loader
+            texts={[
+              "Creating Smart Session...",
+              "Analyzing Prompt...",
+              "Broadcasting Transaction...",
+              "Almost there...",
+            ]}
+          />
+        )}
         {showSuccess && <TransactionSuccess />}
       </div>
       {showSuccess && (
