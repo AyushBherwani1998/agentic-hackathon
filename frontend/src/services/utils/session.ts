@@ -21,7 +21,7 @@ export const createSession = (
       threshold: 1,
       owners: [sessionOwner],
     }),
-    salt: toHex(toBytes(getRandomSalt(1000000, 1).toString(), { size: 32 })),
+    salt: toHex(toBytes(getRandomSalt(999, 100).toString(), { size: 32 })),
     erc7739Policies: {
       allowedERC7739Content: [],
       erc1271Policies: [],
