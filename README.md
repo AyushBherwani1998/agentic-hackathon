@@ -6,6 +6,9 @@
 
 E-Lisa Simpson showcases a framework to connect your wallets with AI agents without exposing your private keys.
 
+![image](https://github.com/user-attachments/assets/ef8e9670-456b-4231-921a-2c2b1e7d9297)
+
+
 ## How to use demo
 To use the demo, you'll require the odysseyTestnet faucet. On doing the first login, in the background, it tries to set the EOA code to SAFE Singleton implementation. Once, you have the funds, just open the `https://agentic-hackathon.vercel.app/` instead of `https://agentic-hackathon.vercel.app/app` to trigger the authorization flow. 
 
@@ -41,5 +44,5 @@ Because ElizaOS does not natively support Smart Sessions (and traditionally requ
 
 On receiving the user's prompt, Eliza processes it via an OpenAI model to determine the necessary action. It then composes a new ERC-4337 User Operation using the provided session details. This User Operation is signed by the session owner (Privy's Server Wallet), enabling the transaction to be executed on behalf of the user's EOA without revealing the user's private keys.
 
-![diagram](https://github.com/user-attachments/assets/4f3a6e9c-9dd1-40b6-9f9f-6bdff9c052b9)
+![image](https://github.com/user-attachments/assets/297fbe58-af46-4e71-8b9f-27ab226b81ff)
 
