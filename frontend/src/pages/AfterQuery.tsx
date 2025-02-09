@@ -2,7 +2,7 @@ import React from 'react'
 import Header from '../components/Header'
 import PrimaryButton from '../components/PrimaryButton'
 import SecondaryButton from '../components/SecondaryButton'
-import Loader from '../components/loader'
+import Loader from '../components/Loader'
 import TransactionSuccess from '../components/TransactionSuccess'
 
 const Loading = () => {
