@@ -48,11 +48,17 @@ function App() {
             wallets[0].address as `0x${string}`
           );
           if (!isDelegated) {
+            setShowLoader(true);
             await delegateToSafe(wallets[0]);
+            setShowLoader(false);
           }
           console.log("Is delegated to safe: ", isDelegated);
         }
       } catch (error: any) {
+        setShowLoader(false);
+        alert(
+          "Safe Delegation failed due to lack of funds, please add funds on odyssey testnet"
+        );
         console.error(error.message);
       }
     };
@@ -128,9 +134,9 @@ function App() {
         <div className="w-screen flex justify-center items-center">
           <Loader
             texts={[
-              "Connecting your wallet",
-              "Installing safe Modules",
-              "Adding goodness of ERC7702",
+              "Adding goodness of EIP 7702...",
+              "Delegating to SAFE L2 Singleton...",
+              "Installing ERC 7579 Modules...",
               "Almost there...",
             ]}
           />

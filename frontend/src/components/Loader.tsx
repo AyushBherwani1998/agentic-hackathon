@@ -20,7 +20,7 @@ const Loader: React.FC<LoaderProps> = ({ texts }) => {
         setLoadingText(texts[index]);
         setVisible(true); // Fade in
       }, 500); // Duration of fade out
-    }, 3000); // Change text every 3 seconds
+    }, 1000); // Change text every 3 seconds
 
     return () => clearInterval(interval);
   }, [texts]);
