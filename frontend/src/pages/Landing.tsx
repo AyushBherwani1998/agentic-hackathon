@@ -190,13 +190,6 @@ const Landing: React.FC = () => {
 
   const handleConnect = async () => {
     login();
-    console.log(ready, authenticated);
-    if (ready && authenticated) {
-      setShowLoader(true);
-      await delegateToSafe(wallets[0]);
-      setShowLoader(false);
-      //naviate to ./app @ayush
-    }
   };
 
   return (

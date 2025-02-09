@@ -22,6 +22,7 @@ function App() {
   const [inputValue, setInputValue] = useState<string>("");
   const [showTransfer, setShowTransfer] = useState(false);
   const [showEliza, setShowEliza] = useState(false);
+  const [text, setText] = useState<string[]>([]);
   // const [showCreateToken, setShowCreateToken] = useState(false);
   const [showLoader, setShowLoader] = useState(false);
   const [showInputPrompt, setShowInputPrompt] = useState(false);
@@ -42,12 +43,18 @@ function App() {
     const init = async () => {
       try {
         setIsReady(ready);
-        if (ready && authenticated) {
+        if (ready && authenticated && wallets.length > 0) {
           console.log(wallets[0].address as `0x${string}`);
           const isDelegated = await isDelegatedToSafe(
             wallets[0].address as `0x${string}`
           );
           if (!isDelegated) {
+            setText([
+              "Adding goodness of EIP 7702...",
+              "Delegating to SAFE L2 Singleton...",
+              "Installing ERC 7579 Modules...",
+              "Almost there...",
+            ]);
             setShowLoader(true);
             await delegateToSafe(wallets[0]);
             setShowLoader(false);
@@ -63,7 +70,7 @@ function App() {
       }
     };
     init();
-  }, [wallets]);
+  }, [ready, authenticated]);
 
   const handleValidation = () => {
     setIsValidated(true);
@@ -78,17 +85,40 @@ function App() {
   let buttonOnClick;
 
   const onExecute = async () => {
+    setShowLoader(true);
+    setText([
+      "Creating Smart Session...",
+      "Analyzing Prompt...",
+      "Broadcasting Transaction...",
+      "Almost there...",
+    ]);
     console.log("Execute transfer clicked, current input:", inputValue);
     console.log(TransferData.amount);
     console.log(TransferData.transferAddress);
-    const response = await executeTransferQuery(
-      `Transfer 0.0001 to 0xDC5aFb5DE928bAc740e4bcB1600B93504560d850 on odysseyTestnet`,
-      wallets[0],
-      "0xDC5aFb5DE928bAc740e4bcB1600B93504560d850"
-    );
-    console.log("Response: ", response);
+    try {
+      const response: any = await executeTransferQuery(
+        `Transfer ${TransferData.amount} ETH to ${TransferData.transferAddress} on odysseyTestnet`,
+        wallets[0],
+        TransferData.transferAddress as `0x${string}`
+      );
+
+      console.log("Response: ", response[1].content);
+      if (response[1].content.error) {
+        setShowLoader(false);
+        alert(
+          "Something went wrong, please try again, please check logs for more error"
+        );
+      } else {
+        navigate("/loading", {
+          state: { transferResponse: response[1].content },
+        });
+      }
+    } catch (error: any) {
+      setShowLoader(false);
+      alert(error.message);
+      console.error(error.message);
+    }
     setShowLoader(false);
-    navigate("/loading");
   };
 
   const handleSubmit = () => {
@@ -132,14 +162,7 @@ function App() {
 
       {showLoader && (
         <div className="w-screen flex justify-center items-center">
-          <Loader
-            texts={[
-              "Adding goodness of EIP 7702...",
-              "Delegating to SAFE L2 Singleton...",
-              "Installing ERC 7579 Modules...",
-              "Almost there...",
-            ]}
-          />
+          <Loader texts={text} />
         </div>
       )}
 

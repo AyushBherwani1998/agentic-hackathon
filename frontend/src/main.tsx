@@ -44,16 +44,15 @@ createRoot(document.getElementById("root")!).render(
 
 export default function MyComponent() {
   const { ready, authenticated } = usePrivy();
-
+  const { wallets } = useWallets();
   if (!ready) {
     return <></>;
   }
-
   if (ready && !authenticated) {
     router.navigate("/");
   }
 
-  if (ready && authenticated) {
+  if (ready && authenticated && wallets.length > 0) {
     router.navigate("/app");
   }
 }
