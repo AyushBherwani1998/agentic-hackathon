@@ -1,3 +1,7 @@
+![image](https://github.com/user-attachments/assets/1f8c46f4-e77d-49f5-91f9-c4a6588c020a)
+
+
+
 # E-Lisa Simpson
 
 E-Lisa Simpson showcases a framework to connect your wallets with AI agents without exposing your private keys.
