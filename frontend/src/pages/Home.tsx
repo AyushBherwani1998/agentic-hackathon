@@ -1,7 +1,7 @@
 import "../App.css";
 import { usePrivy, useWallets } from "@privy-io/react-auth";
 import PromptInput from "../components/PromptInput.tsx";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import PromptTransfer from "../components/PromptTransfer.tsx";
 import Header from "../components/Header.tsx";
 import PrimaryButton from "../components/PrimaryButton.tsx";
@@ -9,9 +9,16 @@ import PrimaryButton from "../components/PrimaryButton.tsx";
 import { executeTransferQuery } from "../services/elisaHandler.ts";
 import Loader from "../components/Loader.tsx";
 import { useNavigate } from "react-router-dom";
+import {
+  delegateToSafe,
+  isDelegatedToSafe,
+} from "../services/rhinestoneHandler.ts";
+import { Hex } from "viem";
 
 function App() {
   const { wallets } = useWallets();
+  const { ready, authenticated } = usePrivy();
+  const [isReady, setIsReady] = useState(false);
   const [inputValue, setInputValue] = useState<string>("");
   const [showTransfer, setShowTransfer] = useState(false);
   const [showEliza, setShowEliza] = useState(false);
@@ -30,6 +37,27 @@ function App() {
     amount: false,
     transferAddress: false,
   });
+
+  useEffect(() => {
+    const init = async () => {
+      try {
+        setIsReady(ready);
+        if (ready && authenticated) {
+          console.log(wallets[0].address as `0x${string}`);
+          const isDelegated = await isDelegatedToSafe(
+            wallets[0].address as `0x${string}`
+          );
+          if (!isDelegated) {
+            await delegateToSafe(wallets[0]);
+          }
+          console.log("Is delegated to safe: ", isDelegated);
+        }
+      } catch (error: any) {
+        console.error(error.message);
+      }
+    };
+    init();
+  }, [wallets]);
 
   const handleValidation = () => {
     setIsValidated(true);

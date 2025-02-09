@@ -48,6 +48,20 @@ const pimlicoClient = createPimlicoClient({
   ),
 });
 
+export const isDelegatedToSafe = async (address: Hex) => {
+  const code = await publicClient.getCode({
+    address: address as `0x${string}`,
+  });
+
+  if (!code) {
+    return false;
+  }
+
+  return code
+    .toLowerCase()
+    .includes("29fcB43b46531BcA003ddC8FCB67FFE91900C762".toLowerCase());
+};
+
 const smartAccountClient = async (wallet: ConnectedWallet, owner: Account) => {
   const ownableValidator = getOwnableValidator({
     owners: [wallet.address as `0x${string}`],
